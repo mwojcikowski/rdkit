@@ -20,5 +20,5 @@ script:
  - make
  - make install
  - ctest --output-on-failure
- - cd $RDBASE/Code/PgSQL/rdkit && make && make install && make installcheck
+ - cd $RDBASE/Code/PgSQL/rdkit && make && sudo make install && make installcheck
 
