@@ -166,10 +166,10 @@ def PrintDefaultMolRep(x):
 #Chem.Mol.__str__ = lambda x: '<img src="data:image/png;base64,%s" alt="Mol"/>'%get_image(Draw.MolToImage(x))
 Chem.Mol.__str__ = PrintAsBase64PNGString
 
-def _MolPlusFingerprintFromSmiles(smi):
+def _MolPlusFingerprintFromSmiles(smi, sanitize=True):
   '''Precomputes fingerprints and stores results in molecule objects to accelerate substructure matching
   '''
-  m = Chem.MolFromSmiles(smi)
+  m = Chem.MolFromSmiles(smi, sanitize=sanitize)
   if m is not None:
     m._substructfp=_fingerprinter(m,False)
   return m
@@ -185,14 +185,14 @@ def RenderImagesInAllDataFrames(images=True):
     pd.core.frame.DataFrame.to_html = defPandasRendering
 
 
-def AddMoleculeColumnToFrame(frame, smilesCol='Smiles', molCol = 'ROMol',includeFingerprints=False):
+def AddMoleculeColumnToFrame(frame, smilesCol='Smiles', molCol = 'ROMol',includeFingerprints=False, sanitize=True):
   '''Converts the molecules contains in "smilesCol" to RDKit molecules and appends them to the dataframe "frame" using the specified column name.
   If desired, a fingerprint can be computed and stored with the molecule objects to accelerate substructure matching
   '''
   if not includeFingerprints:
-    frame[molCol]=frame.apply(lambda x: Chem.MolFromSmiles(x[smilesCol]), axis=1)
+    frame[molCol]=frame.apply(lambda x: Chem.MolFromSmiles(x[smilesCol], sanitize=sanitize), axis=1)
   else:
-    frame[molCol]=frame.apply(lambda x: _MolPlusFingerprintFromSmiles(x[smilesCol]), axis=1) 
+    frame[molCol]=frame.apply(lambda x: _MolPlusFingerprintFromSmiles(x[smilesCol], sanitize=sanitize), axis=1) 
   RenderImagesInAllDataFrames(images=True)
   #frame.to_html = types.MethodType(patchPandasHTMLrepr,frame)
   #frame.head = types.MethodType(patchPandasHeadMethod,frame)
