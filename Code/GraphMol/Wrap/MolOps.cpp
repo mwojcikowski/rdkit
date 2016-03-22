@@ -214,7 +214,7 @@ std::string getUniqueResidue(const ROMol &m, const Atom *at) {
   if (at->getMonomerInfo()->getMonomerType() != AtomMonomerInfo::PDBRESIDUE)
     return "";
   return static_cast<const AtomPDBResidueInfo *>(at->getMonomerInfo())
-      ->getResidueIdx() +
+      ->getResidueNumber() +
       static_cast<const AtomPDBResidueInfo *>(at->getMonomerInfo())
       ->getChainId();
 }
