@@ -208,6 +208,16 @@ std::string getChainId(const ROMol &m, const Atom *at) {
   return static_cast<const AtomPDBResidueInfo *>(at->getMonomerInfo())
       ->getChainId();
 }
+namespace {
+std::string getUniqueResidue(const ROMol &m, const Atom *at) {
+  RDUNUSED_PARAM(m);
+  if (at->getMonomerInfo()->getMonomerType() != AtomMonomerInfo::PDBRESIDUE)
+    return "";
+  return static_cast<const AtomPDBResidueInfo *>(at->getMonomerInfo())
+      ->getResidueIdx() +
+      static_cast<const AtomPDBResidueInfo *>(at->getMonomerInfo())
+      ->getChainId();
+}
 }
 python::dict splitMolByPDBResidues(const ROMol &mol, python::object pyWhiteList,
                                    bool negateList) {
@@ -246,6 +256,31 @@ python::dict splitMolByPDBChainId(const ROMol &mol, python::object pyWhiteList,
   }
   std::map<std::string, boost::shared_ptr<ROMol> > res =
       MolOps::getMolFragsWithQuery(mol, getChainId, false, whiteList,
+                                   negateList);
+  delete whiteList;
+
+  python::dict pyres;
+  for (std::map<std::string, boost::shared_ptr<ROMol> >::const_iterator iter =
+           res.begin();
+       iter != res.end(); ++iter) {
+    pyres[iter->first] = iter->second;
+  }
+  return pyres;
+}
+
+python::dict splitMolByUniquePDBResidues(const ROMol &mol, python::object pyWhiteList,
+                                   bool negateList) {
+  std::vector<std::string> *whiteList = NULL;
+  if (pyWhiteList) {
+    unsigned int nVs =
+        python::extract<unsigned int>(pyWhiteList.attr("__len__")());
+    whiteList = new std::vector<std::string>(nVs);
+    for (unsigned int i = 0; i < nVs; ++i) {
+      (*whiteList)[i] = python::extract<std::string>(pyWhiteList[i]);
+    }
+  }
+  std::map<std::string, boost::shared_ptr<ROMol> > res =
+      MolOps::getMolFragsWithQuery(mol, getUniqueResidue, false, whiteList,
                                    negateList);
   delete whiteList;
 
